@@ -134,3 +134,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# NPM's package-lock.json
+package-lock.json
+
+# Prisma
+client

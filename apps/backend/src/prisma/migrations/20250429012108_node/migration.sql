@@ -1,0 +1,16 @@
+-- CreateTable
+CREATE TABLE `Node` (
+    `id` VARCHAR(191) NOT NULL,
+    `ip` VARCHAR(191) NULL,
+    `fqdn` VARCHAR(191) NULL,
+    `port` INTEGER NOT NULL DEFAULT 80,
+    `label` VARCHAR(191) NOT NULL,
+    `location` VARCHAR(191) NULL,
+    `authorization` VARCHAR(191) NOT NULL,
+    `ssl` BOOLEAN NOT NULL DEFAULT false,
+    `status` ENUM('ONLINE', 'OFFLINE', 'MAINTENANCE') NOT NULL DEFAULT 'OFFLINE',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

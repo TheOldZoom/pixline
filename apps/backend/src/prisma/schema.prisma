@@ -13,12 +13,50 @@ enum Role {
   Admin
 }
 
+enum NodeStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
   password  String
   role      Role     @default(User)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shards Shard[] @relation("UserShards")
+}
+
+model Node {
+  id            String     @id @default(uuid())
+  ip            String? // 8.8.8.8 aka an ip address
+  fqdn          String? // node.example.com
+  port          Int        @default(80)
+  label         String // Costa Rica
+  location      String? // cr-{i}
+  authorization String // The key to access the node, the node also has to set this key
+  ssl           Boolean    @default(false)
+  status        NodeStatus @default(OFFLINE)
+
+  shards Shard[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Shard {
+  id   String @id @default(uuid())
+  name String
+
+  nodeId String
+  Node   Node   @relation(fields: [nodeId], references: [id])
+
+  users User[] @relation("UserShards")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

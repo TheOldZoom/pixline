@@ -38,6 +38,8 @@ app.listen(PORT, async () => {
   const codebaseStats = await analyzeCodebase(process.cwd());
   logger.debug("Codebase Statistics:");
   logger.debug(`Total Files: ${codebaseStats.totalFiles}`);
+  logger.debug(`Total Folders: ${codebaseStats.totalFolders}`);
+  logger.debug(`Total Characters: ${codebaseStats.totalCharacters}`);
   logger.debug(`Total Lines: ${codebaseStats.totalLines}`);
   logger.debug(`Total Code Lines: ${codebaseStats.totalCodeLines}`);
   logger.debug(`Total Empty Lines: ${codebaseStats.totalEmptyLines}`);

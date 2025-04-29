@@ -14,6 +14,7 @@ interface FileStats {
 
 interface CodebaseStats {
   totalFiles: number;
+  totalFolders: number;
   totalCharacters: number;
   totalLines: number;
   totalCodeLines: number;
@@ -34,6 +35,7 @@ function analyzeCodebase(
     ".html",
     ".css",
     ".scss",
+    ".prisma",
   ],
   ignorePatterns: string[] = [
     "node_modules",
@@ -41,12 +43,20 @@ function analyzeCodebase(
     "build",
     ".git",
     ".client",
+    "migrations",
   ]
 ): CodebaseStats {
   const fileStats: FileStats[] = [];
+  let folderCount = 0;
 
   function scanDirectory(dirPath: string) {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+    if (dirPath !== directoryPath) {
+      folderCount++;
+    } else {
+      folderCount = 1;
+    }
 
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
@@ -72,6 +82,7 @@ function analyzeCodebase(
 
   const codebaseStats: CodebaseStats = {
     totalFiles: fileStats.length,
+    totalFolders: folderCount,
     totalCharacters: fileStats.reduce(
       (sum, file) => sum + file.totalCharacters,
       0

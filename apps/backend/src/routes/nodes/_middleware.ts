@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
+import { UserJWT } from "../../utils/schemas/User";
 export default async function handler(
   req: Request,
   Response: Response,
@@ -10,7 +11,6 @@ export default async function handler(
   if (!authorization) {
     return Response.status(401).json({ message: "Unauthorized" });
   }
-  console.log(authorization);
   const token = authorization.split(" ")[1];
 
   if (!token) {
@@ -24,6 +24,8 @@ export default async function handler(
   if (!decodedToken) {
     return Response.status(401).json({ message: "Unauthorized" });
   }
+
+  req.user = decodedToken as typeof UserJWT;
 
   next();
 }

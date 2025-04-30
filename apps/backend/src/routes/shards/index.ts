@@ -2,9 +2,7 @@ import Router from "../../structures/Router";
 
 const router = new Router();
 
-router.post((req, res) => {
-  // upload image
-
+router.get((req, res) => {
   res.json({
     message: "Hello World",
   });

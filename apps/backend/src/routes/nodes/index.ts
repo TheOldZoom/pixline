@@ -1,0 +1,12 @@
+import Router from "../../structures/Router";
+import Prisma from "../../utils/db/Prisma";
+
+const router = new Router();
+
+router.get(async (req, res) => {
+  const nodes = await Prisma.node.findMany();
+
+  res.json(nodes);
+});
+
+export default router;

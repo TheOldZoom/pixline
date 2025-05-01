@@ -32,15 +32,15 @@ model User {
 }
 
 model Node {
-  id            String     @id @default(uuid())
-  ip            String? // 8.8.8.8 aka an ip address
-  fqdn          String? // node.example.com
-  port          Int        @default(80)
-  label         String // Costa Rica
-  location      String? // cr-{i}
-  authorization String // The key to access the node, the node also has to set this key
-  ssl           Boolean    @default(false)
-  status        NodeStatus @default(OFFLINE)
+  id         String     @id @default(uuid())
+  ip         String? // 8.8.8.8 aka an ip address
+  identifier String
+  port       Int        @default(80)
+  label      String // Costa Rica
+  location   String? // cr-{i}
+  secret_key String // The key to access the node, the node also has to set this key
+  ssl        Boolean    @default(false)
+  status     NodeStatus @default(OFFLINE)
 
   shards Shard[]
 

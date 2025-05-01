@@ -1,67 +1,72 @@
-import { Node } from "../interfaces/INode";
-import WebSocket from "ws";
+import NodeConnection from "./Node";
+import Logger from "./Logger";
+import { Node } from "../prisma/.client";
 
-export default class NodeConnection {
-  public options: Node;
-  public ws?: WebSocket;
-  public isAlive: boolean = false;
-  private healthCheckInterval?: NodeJS.Timeout;
+export default class NodeManager {
+  private nodes = new Map<string, NodeConnection>();
+  private logger: Logger = new Logger({ appName: "NManager" });
 
-  constructor(options: Node) {
-    this.options = options;
-    this.connect();
+  constructor() {
+    this.monitorNodes();
   }
 
-  public connect() {
-    const { identifier, port, ssl, secret_key } = this.options;
-    const protocol = ssl ? "wss" : "ws";
-    const url = `${protocol}://${identifier}:${port}`;
+  public addNode(options: Node) {
+    if (this.nodes.has(options.identifier)) {
+      this.logger.warn(`Node ${options.identifier} already exists.`);
+      return;
+    }
 
-    this.ws = new WebSocket(url, {
-      headers: {
-        Authorization: `Bearer ${secret_key}`,
-      },
-    });
-
-    this.ws.on("open", () => {
-      console.log(`[${identifier}] Connected.`);
-      this.isAlive = true;
-      this.startHealthCheck();
-    });
-
-    this.ws.on("close", () => {
-      console.warn(`[${identifier}] Connection closed.`);
-      this.isAlive = false;
-      this.stopHealthCheck();
-    });
-
-    this.ws.on("error", (err) => {
-      console.error(`[${identifier}] Error:`, err.message);
-      this.isAlive = false;
-    });
+    const node = new NodeConnection(options);
+    this.nodes.set(`${options.identifier}:${options.port}`, node);
+    this.logger.info(`Added node ${options.identifier}:${options.port}`);
   }
 
-  private startHealthCheck() {
-    this.healthCheckInterval = setInterval(() => {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        console.warn(`[${this.options.identifier}] WebSocket not open.`);
-        this.isAlive = false;
-      } else {
-        console.log(`[${this.options.identifier}] WebSocket alive.`);
-        this.isAlive = true;
-      }
-    }, 30_000);
-  }
-
-  private stopHealthCheck() {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = undefined;
+  public removeNode(identifier: string, port: number) {
+    const node = this.nodes.get(`${identifier}:${port}`);
+    if (node) {
+      node.disconnect();
+      this.nodes.delete(`${identifier}:${port}`);
+      this.logger.info(`Removed node ${identifier}:${port}`);
+    } else {
+      this.logger.warn(`Node ${identifier}:${port} not found.`);
     }
   }
 
-  public disconnect() {
-    this.stopHealthCheck();
-    this.ws?.close();
+  public monitorNodes() {
+    setInterval(() => {
+      this.nodes.forEach((node, id) => {
+        if (!node.isAlive) {
+          this.logger.warn(`[${id}] Not alive. Reconnecting...`);
+          node.disconnect();
+          node.connect();
+        }
+      });
+    }, 30_000);
+  }
+
+  public getNodes() {
+    return this.nodes;
+  }
+
+  public getNode(identifier: string, port: number) {
+    return this.nodes.get(`${identifier}:${port}`);
+  }
+
+  public getNodesByLocation(location: string) {
+    return Array.from(this.nodes.values()).filter(
+      (node) => node.options.location === location
+    );
+  }
+
+  public getNodesByLabel(label: string) {
+    return Array.from(this.nodes.values()).filter(
+      (node) => node.options.label === label
+    );
+  }
+
+  public getNodesByIdentifier(identifier: string) {
+    return Array.from(this.nodes.values()).filter(
+      (node) => node.options.identifier === identifier
+    );
   }
 }

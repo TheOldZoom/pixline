@@ -6,5 +6,3 @@ export interface Node {
   ssl: boolean;
   secret_key: string;
 }
-
-export interface NodeOptions {}

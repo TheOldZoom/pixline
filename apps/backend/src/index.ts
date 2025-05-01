@@ -3,6 +3,8 @@ import express from "express";
 import RouteLoader from "./structures/RouteLoader";
 import Logger from "./structures/Logger";
 import analyzeCodebase from "./utils/helpers/ReadCodebase";
+import Nodes from "./utils/db/Nodes";
+import Prisma from "./utils/db/Prisma";
 
 if (process.env.NODE_ENV === "development") {
   dotenv.config();
@@ -40,6 +42,8 @@ app.listen(PORT, async () => {
   logger.debug(`Total Files: ${codebaseStats.totalFiles}`);
   logger.debug(`Total Folders: ${codebaseStats.totalFolders}`);
   logger.debug(`Total Characters: ${codebaseStats.totalCharacters}`);
+  logger.debug(`Total Word Count: ${codebaseStats.totalWordCount}`);
+
   logger.debug(`Total Lines: ${codebaseStats.totalLines}`);
   logger.debug(`Total Code Lines: ${codebaseStats.totalCodeLines}`);
   logger.debug(`Total Empty Lines: ${codebaseStats.totalEmptyLines}`);
@@ -47,4 +51,12 @@ app.listen(PORT, async () => {
   logger.debug(`Average Lines Per File: ${codebaseStats.avgLinesPerFile}`);
 
   logger.info(`Server started on port ${PORT}`);
+  const nodes = await Prisma.node.findMany();
+  logger.info(`Loaded ${nodes.length} nodes`);
+
+  nodes.forEach((node) => {
+    Nodes.addNode(node);
+  });
+
+  console.log(Nodes.getNodes());
 });

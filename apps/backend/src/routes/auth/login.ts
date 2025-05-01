@@ -3,7 +3,7 @@ import ValidateSchema from "../../utils/middlewares/ValidateSchema";
 import { UserLogin } from "../../utils/schemas/User";
 import Router from "../../structures/Router";
 import * as jwt from "jsonwebtoken";
-import { getUserByEmail } from "../../utils/db/User";
+import { getUserByEmail } from "../../utils/db/Users";
 const router = new Router();
 import * as bcrypt from "bcrypt";
 router.post(

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import ValidateSchema from "../../utils/middlewares/ValidateSchema";
 import { UserCreation } from "../../utils/schemas/User";
 import Router from "../../structures/Router";
-import { createUser } from "../../utils/db/User";
+import { createUser } from "../../utils/db/Users";
 import * as jwt from "jsonwebtoken";
 const router = new Router();
 

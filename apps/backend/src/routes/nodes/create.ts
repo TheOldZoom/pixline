@@ -1,5 +1,6 @@
 import { NodeStatus } from "../../prisma/.client";
 import Router from "../../structures/Router";
+import Nodes from "../../utils/db/Nodes";
 import Prisma from "../../utils/db/Prisma";
 import ValidateSchema from "../../utils/middlewares/ValidateSchema";
 import { NodeCreation, NodeCreationType } from "../../utils/schemas/Node";
@@ -50,6 +51,8 @@ router.post(
           status: "OFFLINE" as NodeStatus,
         },
       });
+
+      Nodes.addNode(newNode);
 
       return res.status(201).json({
         message: "Node created successfully",

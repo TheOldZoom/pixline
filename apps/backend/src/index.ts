@@ -57,6 +57,4 @@ app.listen(PORT, async () => {
   nodes.forEach((node) => {
     Nodes.addNode(node);
   });
-
-  console.log(Nodes.getNodes());
 });

@@ -33,8 +33,7 @@ model User {
 
 model Node {
   id         String     @id @default(uuid())
-  ip         String? // 8.8.8.8 aka an ip address
-  identifier String
+  identifier String // domain name or ip
   port       Int        @default(80)
   label      String // Costa Rica
   location   String? // cr-{i}

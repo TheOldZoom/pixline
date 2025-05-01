@@ -1,8 +1,8 @@
 import "express";
-import { UserJWT } from "../utils/schemas/User";
+import { User } from "../prisma/.client";
 
 declare module "express" {
   interface Request {
-    user?: typeof UserJWT | null;
+    user: User | null;
   }
 }

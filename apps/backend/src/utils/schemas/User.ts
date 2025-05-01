@@ -11,9 +11,9 @@ export const UserLogin = z.object({
   password: z.string(),
 });
 
-export const UserJWT = z.object({
-  id: z.number(),
-  name: z.string(),
-  email: z.string().email(),
-  role: z.string(),
-});
+export interface UserJWT {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}

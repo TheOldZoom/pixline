@@ -20,7 +20,8 @@ function maskSensitiveData(data: any) {
 
 function logRequest(req: Request, res: Response, next: NextFunction) {
   const startTime = Date.now();
-  if (req.body && Object.keys(req.body).length < 0) {
+  console.log(req.body);
+  if (req.body === undefined) {
     req.body = {};
   }
 

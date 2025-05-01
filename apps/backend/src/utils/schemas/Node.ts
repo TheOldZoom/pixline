@@ -14,12 +14,11 @@ const baseNodeSchema = z.object({
     })
     .refine(
       (val) => {
-        // if it looks like IP, it must be a real valid IP
         if (isIpAddress(val)) {
           const parts = val.split(".").map(Number);
           return parts.every((p) => p >= 0 && p <= 255);
         }
-        return true; // Assume FQDN format is already checked by regex above
+        return true;
       },
       { message: "Invalid IP address segments" }
     ),

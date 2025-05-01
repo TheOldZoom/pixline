@@ -40,7 +40,6 @@ class RouteLoader {
     let middlewares = [...parentMiddlewares];
     const middlewarePath = path.join(currentDir, "_middleware.ts");
 
-    // Load and apply middleware if it exists
     if (fs.existsSync(middlewarePath)) {
       const middlewareModule = require(path.resolve(middlewarePath));
       const middleware = middlewareModule.default as RequestHandler;

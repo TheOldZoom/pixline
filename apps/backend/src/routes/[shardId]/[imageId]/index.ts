@@ -10,9 +10,8 @@ router.get((req, res) => {
   });
 });
 
-router.patch((req, res) => {
-  // edit the image info, update etc
-
+router.delete(async (req, res) => {
+  // delete the image
   res.json({
     message: "Hello World",
   });

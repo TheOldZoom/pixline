@@ -52,7 +52,7 @@ model Shard {
   name String
 
   nodeId String
-  Node   Node   @relation(fields: [nodeId], references: [id])
+  node   Node   @relation(fields: [nodeId], references: [id])
 
   users User[] @relation("UserShards")
 

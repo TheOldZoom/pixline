@@ -1,10 +1,15 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
 import RouteLoader from "./structures/RouteLoader";
 import Logger from "./structures/Logger";
+import WebSocketHandler from "./structures/WebSocketHandler";
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "3002", 10);
+const server = createServer(app);
+const PORT = parseInt(process.env.PORT ?? "3002", 10);
+
 const logger = new Logger({
   appName: "App",
   colors: true,
@@ -13,15 +18,26 @@ const logger = new Logger({
   showTimestamp: true,
 });
 
+app.use((req, res, next) => {
+  console.log(req.path);
+
+  next();
+});
+
+app.use(express.static("uploads"));
+
 const routeLoader = new RouteLoader({
   app,
   path: "./src/routes",
 });
 
+const wss = new WebSocketServer({ server });
+const websocketHandler = new WebSocketHandler({ wss, logger });
+
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   logger.info(`Server started on port ${PORT}`);
 });

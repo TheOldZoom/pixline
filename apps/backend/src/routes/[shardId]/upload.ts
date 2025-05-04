@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { NextFunction, Request, Response } from "express";
 import Prisma from "../../utils/db/Prisma";
-import UploadImages from "../../utils/helpers/UploadImages";
+import Uploadfiles from "../../utils/helpers/UploadFiles";
 import getNodeUrl from "../../utils/helpers/getNodeUrl";
 import { Node } from "../../prisma/.client";
 
@@ -135,7 +135,7 @@ const handleMulterError = (
 router.post(
   checkIfShardExists,
   (req, res, next) => {
-    upload.array("images", MAX_FILES)(req, res, (err) => {
+    upload.array("files", MAX_FILES)(req, res, (err) => {
       if (err) {
         return handleMulterError(err, req, res, next);
       }
@@ -144,8 +144,8 @@ router.post(
   },
   async (req, res) => {
     try {
-      const files = req.files as Express.Multer.File[];
-      if (!files || files.length === 0) {
+      const Files = req.files as Express.Multer.File[];
+      if (!Files || Files.length === 0) {
         return res.status(400).json({
           message: "No files uploaded",
         });
@@ -159,15 +159,15 @@ router.post(
         });
       }
 
-      const images = await UploadImages(files, shard.node, shardId);
+      const files = await Uploadfiles(Files, shard.node, shardId);
 
       return res
         .status(200)
-        .json(formatResponse(images as UploadResponse, shard.node));
+        .json(formatResponse(files as UploadResponse, shard.node));
     } catch (error: any) {
-      console.error("Error uploading images:", error);
+      console.error("Error uploading files:", error);
       return res.status(500).json({
-        message: "Failed to process uploaded images",
+        message: "Failed to process uploaded files",
         error:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       });
@@ -179,7 +179,7 @@ export default router;
 
 type UploadResponse = {
   message: string;
-  images: Array<{ filename: string; url: string; size: number }>;
+  files: Array<{ filename: string; url: string; size: number }>;
 };
 
 type FormattedResponse = {
@@ -195,9 +195,9 @@ const formatResponse = (
 ): FormattedResponse => {
   return {
     message: response.message,
-    totalFiles: response.images.length,
-    totalSize: response.images.reduce((sum, file) => sum + file.size, 0),
-    files: response.images.map((file) => ({
+    totalFiles: response.files.length,
+    totalSize: response.files.reduce((sum, file) => sum + file.size, 0),
+    files: response.files.map((file) => ({
       name: file.filename,
       url: getNodeUrl(node) + file.url,
       size: file.size,

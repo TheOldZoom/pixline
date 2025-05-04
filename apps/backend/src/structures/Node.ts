@@ -7,7 +7,7 @@ export default class NodeConnection {
   public options: Node;
   public ws?: WebSocket;
   public isAlive = false;
-  private hasDisconnected = false; // <== add this
+  private hasDisconnected = false;
   private healthCheckInterval?: NodeJS.Timeout;
   private logger = new Logger({ appName: "Node" });
 
@@ -69,11 +69,15 @@ export default class NodeConnection {
   private startHealthCheck() {
     this.healthCheckInterval = setInterval(async () => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-        this.logger.warn(`[${this.options.identifier}] WebSocket not open.`);
+        this.logger.warn(
+          `[${this.options.identifier}:${this.options.port}] WebSocket not open.`
+        );
         this.isAlive = false;
         await this.setStatus(NodeStatus.OFFLINE);
       } else {
-        this.logger.debug(`[${this.options.identifier}] WebSocket alive.`);
+        this.logger.debug(
+          `[${this.options.identifier}:${this.options.port}] WebSocket alive.`
+        );
         this.isAlive = true;
         await this.setStatus(NodeStatus.ONLINE);
       }

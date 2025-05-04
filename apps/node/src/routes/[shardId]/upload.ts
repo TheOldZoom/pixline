@@ -46,7 +46,7 @@ const upload = multer({
 
 const router = new Router();
 
-router.post(upload.array("images", 10), async (req, res) => {
+router.post(upload.array("files", 10), async (req, res) => {
   const shardId = req.params.shardId as string;
 
   if (!req.files || !(req.files instanceof Array) || req.files.length === 0) {
@@ -58,12 +58,9 @@ router.post(upload.array("images", 10), async (req, res) => {
     url: `/${shardId}/${file.filename}`,
     size: file.size,
   }));
-  console.log({
-    message: "Images uploaded successfully.",
-    files: uploadedFiles,
-  });
+
   return res.status(201).json({
-    message: "Images uploaded successfully.",
+    message: "Files uploaded successfully.",
     files: uploadedFiles,
   });
 });

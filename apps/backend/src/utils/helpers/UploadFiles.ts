@@ -2,18 +2,20 @@ import * as fs from "fs/promises";
 import { Node } from "../../prisma/.client";
 import getNodeUrl from "./getNodeUrl";
 
-export default async function UploadImages(
-  images: Express.Multer.File[],
+export default async function Uploadfiles(
+  files: Express.Multer.File[],
   node: Node,
   shardName: string
 ) {
-  if (!images || images.length === 0) {
+  if (!files || files.length === 0) {
     return [];
   }
 
-  const concurrency = 5;
+  const concurrency = process.env.MAX_FILES
+    ? parseInt(process.env.MAX_FILES)
+    : 10;
   const results: any[] = [];
-  const queue = [...images];
+  const queue = [...files];
 
   async function worker() {
     while (queue.length > 0) {
@@ -22,10 +24,10 @@ export default async function UploadImages(
 
       try {
         const formData = new FormData();
-        for (const image of batch) {
-          const fileBuffer = await fs.readFile(image.path);
-          const blob = new Blob([fileBuffer], { type: image.mimetype });
-          formData.append("images", blob, image.originalname);
+        for (const file of batch) {
+          const fileBuffer = await fs.readFile(file.path);
+          const blob = new Blob([fileBuffer], { type: file.mimetype });
+          formData.append("files", blob, file.originalname);
         }
 
         const url = getNodeUrl(node);
@@ -37,47 +39,45 @@ export default async function UploadImages(
           },
         });
 
-        // Delete local files after upload attempt, regardless of success
-        for (const image of batch) {
+        for (const file of batch) {
           try {
-            await fs.unlink(image.path);
+            await fs.unlink(file.path);
           } catch (deleteError) {
             console.error(
-              `Failed to delete local file ${image.path}:`,
+              `Failed to delete local file ${file.path}:`,
               deleteError
             );
           }
         }
 
         if (!res.ok) {
-          console.error(`Failed to upload batch of images:`, await res.text());
+          console.error(`Failed to upload batch of files:`, await res.text());
           results.push(...batch.map(() => null));
         } else {
           const data = await res.json();
           if (Array.isArray(data)) {
-            results.push(...data); // Push an array of results
+            results.push(...data);
           } else if (data && typeof data === "object") {
-            results.push(data); // Push the object if it's not an array
+            results.push(data);
           } else {
             console.error("Unexpected response format:", data);
-            results.push(...batch.map(() => null)); // Mark all as failed in this batch
+            results.push(...batch.map(() => null));
           }
         }
       } catch (error) {
-        // Even if the upload fails, try to delete the local files
-        for (const image of batch) {
+        for (const file of batch) {
           try {
-            await fs.unlink(image.path);
+            await fs.unlink(file.path);
           } catch (deleteError) {
             console.error(
-              `Failed to delete local file ${image.path}:`,
+              `Failed to delete local file ${file.path}:`,
               deleteError
             );
           }
         }
 
         console.error(`Error uploading batch:`, error);
-        results.push(...batch.map(() => null)); // Mark all as failed in this batch
+        results.push(...batch.map(() => null));
       }
     }
   }
@@ -86,8 +86,8 @@ export default async function UploadImages(
   await Promise.all(workers);
 
   return {
-    message: "Images uploaded successfully.",
-    images: results
+    message: "files uploaded successfully.",
+    files: results
       .filter((r) => r && Array.isArray(r.files))
       .flatMap((r) => r.files),
   };

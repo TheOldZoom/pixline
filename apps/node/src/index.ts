@@ -24,8 +24,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static("uploads"));
-
 const routeLoader = new RouteLoader({
   app,
   path: "./src/routes",
@@ -33,6 +31,8 @@ const routeLoader = new RouteLoader({
 
 const wss = new WebSocketServer({ server });
 const websocketHandler = new WebSocketHandler({ wss, logger });
+
+app.use(express.static("uploads"));
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });

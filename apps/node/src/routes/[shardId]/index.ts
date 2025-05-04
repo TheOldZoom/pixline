@@ -8,13 +8,12 @@ router.get((req, res) => {
   const shardId = req.params.shardId;
   const folderPath = path.join(process.cwd(), "uploads", shardId);
   try {
-    console.log(folderPath);
     if (!fs.existsSync(folderPath)) {
       return res.status(404).json({ error: "Folder not found" });
     }
 
-    const files = fs.readdirSync(folderPath);
-    const images = files
+    const localFiles = fs.readdirSync(folderPath);
+    const files = localFiles
       .filter((file) => {
         const ext = path.extname(file).toLowerCase();
         return [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"].includes(ext);
@@ -30,8 +29,8 @@ router.get((req, res) => {
       });
 
     res.json({
-      message: "Images uploaded successfully.",
-      files: images,
+      message: "Files fetched successfully.",
+      files: files,
     });
   } catch (error) {
     console.error(error);

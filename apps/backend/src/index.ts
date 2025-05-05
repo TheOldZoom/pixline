@@ -5,7 +5,7 @@ import Logger from "./structures/Logger";
 import analyzeCodebase from "./utils/helpers/ReadCodebase";
 import Nodes from "./utils/db/Nodes";
 import Prisma from "./utils/db/Prisma";
-
+import * as path from "path";
 if (process.env.NODE_ENV === "development") {
   dotenv.config();
 }
@@ -37,7 +37,9 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, async () => {
-  const codebaseStats = await analyzeCodebase(process.cwd());
+  const codebaseStats = await analyzeCodebase(
+    path.join(process.cwd(), "..", "..")
+  );
   logger.debug("Codebase Statistics:");
   logger.debug(`Total Files: ${codebaseStats.totalFiles}`);
   logger.debug(`Total Folders: ${codebaseStats.totalFolders}`);

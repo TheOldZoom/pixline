@@ -25,7 +25,6 @@ export default class WebSocketHandler {
 
   private onConnection(ws: WebSocket, req: IncomingMessage) {
     const ip = this.getIP(req);
-
     this.logger.info(`Incoming WebSocket connection from IP: ${ip}`);
 
     const authHeader = req.headers.authorization;
@@ -37,22 +36,15 @@ export default class WebSocketHandler {
       return;
     }
 
-    if (this.activeConnections.has(ip)) {
-      this.logger.warn(
-        `Duplicate connection attempt from IP: ${ip}. Closing old connection.`
-      );
-      const oldConnection = this.activeConnections.get(ip);
-      oldConnection?.close(4000, "Duplicate connection");
-    }
-
-    this.activeConnections.set(ip, ws);
     this.logger.info(`Connection from IP ${ip} authorized and registered`);
 
+    // Message event handling
     ws.on("message", (message: any) => {
       this.logger.debug(`Message received from IP ${ip}: ${message}`);
       ws.send(`Echo: ${message}`);
     });
 
+    // Connection close event handling
     ws.on("close", (code, reason) => {
       this.logger.info(
         `Connection from IP ${ip} closed. Code: ${code}, Reason: ${reason}`
@@ -60,6 +52,7 @@ export default class WebSocketHandler {
       this.activeConnections.delete(ip);
     });
 
+    // Error handling
     ws.on("error", (err) => {
       this.logger.error(`Error from IP ${ip}: ${err.message}`);
     });

@@ -3,7 +3,8 @@ import * as bcrypt from "bcrypt";
 export async function createUser(
   name: string,
   email: string,
-  password: string
+  password: string,
+  role: "USER" | "ADMIN"
 ) {
   const userExist = await Prisma.user.findFirst({
     where: {
@@ -18,6 +19,7 @@ export async function createUser(
       name: name,
       email: email,
       password: await bcrypt.hash(password, 10),
+      role: role,
     },
   });
 }

@@ -38,13 +38,11 @@ export default class WebSocketHandler {
 
     this.logger.info(`Connection from IP ${ip} authorized and registered`);
 
-    // Message event handling
     ws.on("message", (message: any) => {
       this.logger.debug(`Message received from IP ${ip}: ${message}`);
       ws.send(`Echo: ${message}`);
     });
 
-    // Connection close event handling
     ws.on("close", (code, reason) => {
       this.logger.info(
         `Connection from IP ${ip} closed. Code: ${code}, Reason: ${reason}`
@@ -52,7 +50,6 @@ export default class WebSocketHandler {
       this.activeConnections.delete(ip);
     });
 
-    // Error handling
     ws.on("error", (err) => {
       this.logger.error(`Error from IP ${ip}: ${err.message}`);
     });

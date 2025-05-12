@@ -1,0 +1,66 @@
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import * as jwt from "jsonwebtoken";
+import { useRouter } from "next/router";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: "ADMIN" | "USER";
+  avatar: string;
+}
+
+interface UserContextType {
+  user: User | null;
+  logout: () => void;
+}
+
+const UserContext = createContext<UserContextType>({
+  user: null,
+  logout: () => {},
+});
+
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwt.decode(token) as User;
+        if (!decoded) {
+          localStorage.removeItem("token");
+          setUser(null);
+        } else {
+          setUser(decoded);
+        }
+      } catch (error) {
+        console.error("Invalid token", error);
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/");
+  }, [router]);
+  return (
+    <UserContext.Provider value={{ user, logout }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+
+export function useUser() {
+  return useContext(UserContext);
+}

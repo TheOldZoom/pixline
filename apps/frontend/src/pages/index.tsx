@@ -5,15 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { validateSchema } from "@/lib/utils";
 import { UserCreate, UserLogin } from "@/schemas/User";
+import { useRouter } from "next/router";
+import { useUser } from "@/lib/userContext";
+import Container from "@/components/ui/Container";
 
 const Home = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const { user } = useUser();
 
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+    async function fetchUsers() {
+      try {
+        const response = await fetch("/api/users/here");
+        const data = await response.json();
+        if (!data.hasUser) {
+          setIsLogin(false);
+        }
+      } catch (error) {}
+      setLoading(false);
+    }
+    fetchUsers();
+  }, [user, router]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -29,7 +50,7 @@ const Home = () => {
 
     if (!result.success) {
       const newErrors: { [key: string]: string } = {};
-      result.error.errors.forEach((err) => {
+      result.error.errors.forEach((err: any) => {
         newErrors[err.path[0]] = err.message;
       });
       setErrors(newErrors);
@@ -38,7 +59,6 @@ const Home = () => {
     }
 
     const validatedData = result.data;
-    console.log("Validated data:", validatedData);
 
     try {
       const response = await fetch(
@@ -77,32 +97,12 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      window.location.href = "/dashboard";
-    }
-
-    async function fetchUsers() {
-      try {
-        const response = await fetch("/api/users/here");
-        const data = await response.json();
-        if (!data.hasUser) {
-          setIsLogin(false);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    fetchUsers();
-  }, []);
-
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <Container className="flex justify-center items-center min-h-screen">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? "Login" : "Register"}
+            {isLogin ? "Log In" : "Register"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -180,7 +180,7 @@ const Home = () => {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </Container>
   );
 };
 

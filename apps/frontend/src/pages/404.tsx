@@ -14,7 +14,7 @@ function _404() {
             Page Not Found
           </p>
           <Button className="mt-6" variant="default" asChild>
-            <Link href="/4">Back to Home</Link>
+            <Link href="/dashboard">Back to Home</Link>
           </Button>
         </CardContent>
       </Card>

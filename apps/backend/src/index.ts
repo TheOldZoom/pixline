@@ -37,9 +37,7 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, async () => {
-  const codebaseStats = await analyzeCodebase(
-    path.join(process.cwd(), "..", "..")
-  );
+  const codebaseStats = analyzeCodebase(path.join(process.cwd(), "..", ".."));
   logger.debug("Codebase Statistics:");
   logger.debug(`Total Files: ${codebaseStats.totalFiles}`);
   logger.debug(`Total Folders: ${codebaseStats.totalFolders}`);

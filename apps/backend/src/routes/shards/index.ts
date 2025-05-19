@@ -1,11 +1,22 @@
 import Router from "../../structures/Router";
+import Prisma from "../../utils/db/Prisma";
 
 const router = new Router();
 
-router.get((req, res) => {
-  res.json({
-    message: "Hello World",
+router.get(async (req, res) => {
+  const user = req.user;
+
+  const shards = await Prisma.shard.findMany({
+    where: {
+      users: {
+        some: {
+          id: user?.id,
+        },
+      },
+    },
   });
+
+  return res.json(shards);
 });
 
 export default router;

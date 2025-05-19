@@ -7,19 +7,7 @@ import {
 } from "react";
 import * as jwt from "jsonwebtoken";
 import { useRouter } from "next/router";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "ADMIN" | "USER";
-  avatar: string;
-}
-
-interface UserContextType {
-  user: User | null;
-  logout: () => void;
-}
+import { User, UserContextType } from "@/interfaces/User";
 
 const UserContext = createContext<UserContextType>({
   user: null,
@@ -39,7 +27,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("token");
           setUser(null);
         } else {
-          setUser(decoded);
+          const UserWithToken = {
+            ...decoded,
+            token,
+          };
+          setUser(UserWithToken);
         }
       } catch (error) {
         console.error("Invalid token", error);

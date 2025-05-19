@@ -1,28 +1,49 @@
-import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { validateSchema } from "@/lib/utils";
-import { UserCreate, UserLogin } from "@/schemas/User";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useUser } from "@/lib/userContext";
 import Container from "@/components/ui/Container";
+import { UserLogin, UserCreate } from "@/schemas/User";
+
+type LoginFormData = z.infer<typeof UserLogin>;
+type RegisterFormData = z.infer<typeof UserCreate>;
 
 const Home = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
-  const nameRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { user } = useUser();
+
+  const form = useForm<LoginFormData | RegisterFormData>({
+    resolver: zodResolver(isLogin ? UserLogin : UserCreate),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
     if (user) {
       router.push("/dashboard");
     }
+
     async function fetchUsers() {
       try {
         const response = await fetch("/api/users/here");
@@ -30,70 +51,36 @@ const Home = () => {
         if (!data.hasUser) {
           setIsLogin(false);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error checking users:", error);
+      }
       setLoading(false);
     }
+
     fetchUsers();
   }, [user, router]);
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+  const onSubmit = async (values: LoginFormData | RegisterFormData) => {
     setLoading(true);
-
-    const name = nameRef.current?.value || "";
-    const email = emailRef.current?.value || "";
-    const password = passwordRef.current?.value || "";
-
-    const formData = { name, email, password };
-    const schema = isLogin ? UserLogin : UserCreate;
-
-    const result = validateSchema(formData, schema);
-
-    if (!result.success) {
-      const newErrors: { [key: string]: string } = {};
-      result.error.errors.forEach((err: any) => {
-        newErrors[err.path[0]] = err.message;
-      });
-      setErrors(newErrors);
-      setLoading(false);
-      return;
-    }
-
-    const validatedData = result.data;
-
     try {
       const response = await fetch(
         isLogin ? "/api/auth/login" : "/api/auth/create",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validatedData),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
         }
       );
 
       const data = await response.json();
       if (data.token) {
         localStorage.setItem("token", data.token);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-      if (localStorage.getItem("token")) {
         window.location.href = "/dashboard";
       }
-    }
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: string
-  ) => {
-    if (errors[field]) {
-      const updatedErrors = { ...errors };
-      delete updatedErrors[field];
-      setErrors(updatedErrors);
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,83 +88,90 @@ const Home = () => {
     <Container className="flex justify-center items-center min-h-screen">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-3xl font-bold text-center">
             {isLogin ? "Log In" : "Register"}
           </CardTitle>
+          {!isLogin && (
+            <p className="text-sm text-muted-foreground text-center">
+              Create an admin account
+            </p>
+          )}
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {!isLogin && (
+                <FormField
+                  control={form.control}
                   name="name"
-                  type="text"
-                  ref={nameRef}
-                  autoComplete="name"
-                  className={errors.name ? "border-destructive" : ""}
-                  onChange={(e) => handleInputChange(e, "name")}
-                />
-                <div className="min-h-[1.25rem]">
-                  {errors.name && (
-                    <p className="text-destructive text-sm  ">{errors.name}</p>
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                ref={emailRef}
-                autoComplete="email"
-                className={errors.email ? "border-destructive" : ""}
-                onChange={(e) => handleInputChange(e, "email")}
-              />
-              <div className="min-h-[1.25rem]">
-                {errors.email && (
-                  <p className="text-destructive text-sm  ">{errors.email}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                ref={passwordRef}
-                autoComplete={isLogin ? "current-password" : "new-password"}
-                className={errors.password ? "border-destructive" : ""}
-                onChange={(e) => handleInputChange(e, "password")}
-              />
-              <div className="min-h-[1.25rem]">
-                {errors.password && (
-                  <p className="text-destructive text-sm ">{errors.password}</p>
-                )}
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full relative"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="absolute inset-0 flex justify-center items-center">
-                  <div className="w-5 h-5 border-4 border-t-4 border-foreground border-t-ring rounded-full animate-spin"></div>
-                </div>
-              ) : isLogin ? (
-                "Login"
-              ) : (
-                "Register"
+                />
               )}
-            </Button>
-          </form>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="Email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        autoComplete={
+                          isLogin ? "current-password" : "new-password"
+                        }
+                        placeholder="Password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full relative"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="absolute inset-0 flex justify-center items-center">
+                    <div className="w-5 h-5 border-4 border-t-4 border-foreground border-t-ring rounded-full animate-spin"></div>
+                  </div>
+                ) : isLogin ? (
+                  "Login"
+                ) : (
+                  "Register"
+                )}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </Container>

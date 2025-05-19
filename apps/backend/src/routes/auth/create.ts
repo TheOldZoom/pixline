@@ -12,32 +12,42 @@ router.post(
   ValidateSchema(UserCreation),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, role: requestedRole } = req.body;
+
       const users = await Prisma.user.findMany();
-      console.log(users.length);
+      const isFirstUser = users.length === 0;
+
       let role: "USER" | "ADMIN" = "USER";
-      if (users.length !== 0) {
+
+      if (isFirstUser) {
+        // Automatically make the first user an admin
         role = "ADMIN";
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-          return res
-            .status(401)
-            .json({ message: "Unauthorized: No token provided" });
-        }
+      } else {
+        // Check if the request is trying to create an admin
+        if (requestedRole === "ADMIN") {
+          const authHeader = req.headers.authorization;
+          if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: No token provided" });
+          }
 
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
+          const token = authHeader.split(" ")[1];
+          let decoded: any;
 
-        try {
-          decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-        } catch (err) {
-          return res
-            .status(401)
-            .json({ message: "Unauthorized: Invalid token" });
-        }
+          try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+          } catch (err) {
+            return res
+              .status(401)
+              .json({ message: "Unauthorized: Invalid token" });
+          }
 
-        if (decoded.role !== "ADMIN") {
-          return res.status(403).json({ message: "Forbidden" });
+          if (decoded.role !== "ADMIN") {
+            return res.status(403).json({ message: "Forbidden: Admins only" });
+          }
+
+          role = "ADMIN";
         }
       }
 

@@ -139,4 +139,7 @@ dist
 package-lock.json
 
 # Prisma
-client
+.client
+bun.lock
+uploads
+

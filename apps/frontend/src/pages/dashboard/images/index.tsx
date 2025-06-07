@@ -7,8 +7,10 @@ function Images() {
   const { user } = useUser();
 
   useEffect(() => {
+    if (user === null) return;
     if (!user) {
       router.push("/");
+      return;
     }
   }, [user, router]);
 

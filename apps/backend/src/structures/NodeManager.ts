@@ -20,6 +20,24 @@ export default class NodeManager {
     this.nodes.set(`${options.identifier}:${options.port}`, node);
     this.logger.info(`Added node ${options.identifier}:${options.port}`);
   }
+  public updateNode(updatedNode: Node) {
+    const key = `${updatedNode.identifier}:${updatedNode.port}`;
+
+    const existingNode = this.nodes.get(key);
+    if (!existingNode) {
+      this.logger.warn(`Node ${key} not found in cache. Adding new node.`);
+      this.addNode(updatedNode);
+      return;
+    }
+
+    existingNode.disconnect();
+
+    existingNode.options = updatedNode;
+
+    existingNode.connect();
+
+    this.logger.info(`Updated node ${key}`);
+  }
 
   public removeNode(identifier: string, port: number) {
     const node = this.nodes.get(`${identifier}:${port}`);

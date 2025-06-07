@@ -50,10 +50,7 @@ router.get(
     if (!users) {
       return res.status(404).json({ message: "Users not found" });
     }
-    return res.status(200).json({
-      message: "Users found",
-      users,
-    });
+    return res.status(200).json(users);
   }
 );
 

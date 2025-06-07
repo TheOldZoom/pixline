@@ -14,6 +14,10 @@ router.get(async (req, res) => {
         },
       },
     },
+    include: {
+      node: true,
+      users: true,
+    },
   });
 
   return res.json(shards);

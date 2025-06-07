@@ -36,7 +36,11 @@ router.post(
 
       if (existingNode) {
         return res.status(409).json({
-          message: `Node already exists with identifier ${identifier} and port ${port}`,
+          message: "Validation failed",
+          errors: {
+            identifier: `Node already exists with identifier ${identifier}`,
+            port: `Port ${port} is already in use for this identifier`,
+          },
         });
       }
 
@@ -49,6 +53,9 @@ router.post(
           ssl: ssl ?? false,
           secret_key,
           status: "OFFLINE" as NodeStatus,
+        },
+        include: {
+          shards: true,
         },
       });
 

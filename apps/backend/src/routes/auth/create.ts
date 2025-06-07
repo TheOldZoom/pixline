@@ -20,10 +20,8 @@ router.post(
       let role: "USER" | "ADMIN" = "USER";
 
       if (isFirstUser) {
-        // Automatically make the first user an admin
         role = "ADMIN";
       } else {
-        // Check if the request is trying to create an admin
         if (requestedRole === "ADMIN") {
           const authHeader = req.headers.authorization;
           if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -59,9 +57,12 @@ router.post(
           process.env.JWT_SECRET as string,
           { expiresIn: "7d" }
         );
+        //@ts-ignore
+        delete user.password;
         return res.status(200).json({
           message: "User created successfully",
           token,
+          user,
         });
       }
 

@@ -8,7 +8,11 @@ router.get(async (req, res) => {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  const nodes = await Prisma.node.findMany();
+  const nodes = await Prisma.node.findMany({
+    include: {
+      shards: true,
+    },
+  });
 
   res.json(nodes);
 });

@@ -42,6 +42,10 @@ router.post(ValidateSchema(ShardCreation), async (req, res) => {
         ],
       },
     },
+    include: {
+      node: true,
+      users: true,
+    },
   });
 
   return res.json({

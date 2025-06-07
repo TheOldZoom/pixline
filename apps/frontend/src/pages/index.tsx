@@ -93,7 +93,7 @@ const Home = () => {
           </CardTitle>
           {!isLogin && (
             <p className="text-sm text-muted-foreground text-center">
-              Create an admin account
+              Create a owner account
             </p>
           )}
         </CardHeader>
